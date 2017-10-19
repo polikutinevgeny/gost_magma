@@ -10,11 +10,12 @@ namespace gost_magma
     {
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             MagmaProvider magma = new MagmaProvider(0)
             {
                 Key = "Hello there how are you doing?))"
             };
-            var t = magma.CBCEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext.", 0);
+            var t = magma.CBCEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext. Работает ли русский шрифт?", 0);
             foreach (var b in t.Encrypted)
             {
                 Console.WriteLine(b);
