@@ -10,12 +10,17 @@ namespace gost_magma
     {
         static void Main(string[] args)
         {
-            MagmaProvider magma = new MagmaProvider
+            MagmaProvider magma = new MagmaProvider(0)
             {
-                Key = "testtesttesttesttesttesttesttest"
+                Key = "Hello there how are you doing?))"
             };
-            magma.SeedSbox(0);
-            Console.WriteLine(magma.CBC("test", 0).Encrypted);
+            var t = magma.CBCEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext.", 0);
+            foreach (var b in t.Encrypted)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine();
+            Console.WriteLine(magma.CBCDecrypt(t, 0));
             Console.ReadLine();
         }
     }
