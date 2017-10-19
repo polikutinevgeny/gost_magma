@@ -10,6 +10,13 @@ namespace gost_magma
     {
         static void Main(string[] args)
         {
+            MagmaProvider magma = new MagmaProvider
+            {
+                Key = "testtesttesttesttesttesttesttest"
+            };
+            magma.SeedSbox(0);
+            Console.WriteLine(magma.CBC("test", 0).Encrypted);
+            Console.ReadLine();
         }
     }
 }
