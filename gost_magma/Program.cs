@@ -15,13 +15,13 @@ namespace gost_magma
             {
                 Key = "Hello there how are you doing?))"
             };
-            var t = magma.CFBEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext. Работает ли русский шрифт?", new byte[8]);
+            var t = magma.OFBEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext. Работает ли русский шрифт?", 0);
             foreach (var b in t.Encrypted)
             {
                 Console.Write((char)b);
             }
             Console.WriteLine();
-            Console.WriteLine(magma.CFBDecrypt(t, new byte[8]));
+            Console.WriteLine(magma.OFBDecrypt(t, 0));
             Console.ReadLine();
         }
     }
