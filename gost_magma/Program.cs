@@ -11,17 +11,17 @@ namespace gost_magma
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
-            MagmaProvider magma = new MagmaProvider(0)
+            MagmaProvider magma = new MagmaProvider()
             {
                 Key = "Hello there how are you doing?))"
             };
-            var t = magma.CBCEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext. Работает ли русский шрифт?", 0);
+            var t = magma.CFBEncrypt("Lorem ipsum dolor sit amet. This is plaintext. I repeat: this is plaintext. Работает ли русский шрифт?", new byte[8]);
             foreach (var b in t.Encrypted)
             {
-                Console.WriteLine(b);
+                Console.Write((char)b);
             }
             Console.WriteLine();
-            Console.WriteLine(magma.CBCDecrypt(t, 0));
+            Console.WriteLine(magma.CFBDecrypt(t, new byte[8]));
             Console.ReadLine();
         }
     }

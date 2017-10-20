@@ -12,7 +12,21 @@ namespace gost_magma
     {
         private string _key;
         private UInt32[] _roundkeys;
-        private readonly uint[,] _sbox = new uint[8, 16];
+
+        /// <summary>
+        /// id-tc26-gost-28147-param-Z
+        /// </summary>
+        private readonly UInt32[,] _sbox = new UInt32[8, 16]
+        {
+            {0x0C, 0x04, 0x06, 0x02, 0x0A, 0x05, 0x0B, 0x09, 0x0E, 0x08, 0x0D, 0x07, 0x00, 0x03, 0x0F, 0x01},
+            {0x06, 0x08, 0x02, 0x03, 0x09, 0x0A, 0x05, 0x0C, 0x01, 0x0E, 0x04, 0x07, 0x0B, 0x0D, 0x00, 0x0F},
+            {0x0B, 0x03, 0x05, 0x08, 0x02, 0x0F, 0x0A, 0x0D, 0x0E, 0x01, 0x07, 0x04, 0x0C, 0x09, 0x06, 0x00},
+            {0x0C, 0x08, 0x02, 0x01, 0x0D, 0x04, 0x0F, 0x06, 0x07, 0x00, 0x0A, 0x05, 0x03, 0x0E, 0x09, 0x0B},
+            {0x07, 0x0F, 0x05, 0x0A, 0x08, 0x01, 0x06, 0x0D, 0x00, 0x09, 0x03, 0x0E, 0x0B, 0x04, 0x02, 0x0C},
+            {0x05, 0x0D, 0x0F, 0x06, 0x09, 0x02, 0x0C, 0x0A, 0x0B, 0x07, 0x08, 0x01, 0x04, 0x03, 0x0E, 0x00},
+            {0x08, 0x0E, 0x02, 0x05, 0x06, 0x09, 0x01, 0x0C, 0x0F, 0x04, 0x0B, 0x00, 0x0D, 0x0A, 0x03, 0x07},
+            {0x01, 0x07, 0x0E, 0x0D, 0x00, 0x05, 0x08, 0x03, 0x04, 0x0F, 0x0A, 0x06, 0x09, 0x0C, 0x0B, 0x02}
+        };
 
         public string Key
         {
@@ -30,6 +44,11 @@ namespace gost_magma
                         $"Key length is not equal to 256 bit, but to {Encoding.UTF8.GetBytes(value).Length * 8}");
                 }
             }
+        }
+
+        public MagmaProvider()
+        {
+            
         }
 
         public MagmaProvider(int sboxseed)
@@ -186,7 +205,7 @@ namespace gost_magma
             byte[] decr = Decrypt(temp);
             for (var i = 0; i < 8; ++i)
             {
-                decr[i] = (byte)(decr[i] ^ iv[i]);
+                decr[i] = (byte) (decr[i] ^ iv[i]);
             }
             List<byte> res = new List<byte>(decr);
             for (var i = 1; i < inputBytes.Count / 8; ++i)
@@ -199,6 +218,72 @@ namespace gost_magma
                 }
                 temp = cur;
                 res.AddRange(decr);
+            }
+            return Encoding.UTF8.GetString(res.ToArray()).Substring(0, input.Length);
+        }
+
+        public Result CFBEncrypt(string input, int ivseed)
+        {
+            Random rand = new Random(ivseed);
+            byte[] iv = new byte[8];
+            rand.NextBytes(iv);
+            return CFBEncrypt(input, iv);
+        }
+
+        public Result CFBEncrypt(string input, byte[] iv)
+        {
+            if (iv.Length != 8)
+            {
+                throw new CryptographicException($"Initialization vector length is {iv.Length * 8} bit.");
+            }
+            List<byte> inputBytes = new List<byte>(Encoding.UTF8.GetBytes(input));
+            if (inputBytes.Count % 8 != 0)
+            {
+                inputBytes.AddRange(new byte[8 - inputBytes.Count % 8]);
+            }
+            List<byte> res = new List<byte>();
+            byte[] temp = iv;
+            for (var i = 0; i < inputBytes.Count / 8; ++i)
+            {
+                byte[] cur = Encrypt(temp);
+                byte[] ot = inputBytes.Skip(i * 8).Take(8).ToArray();
+                for (var j = 0; j < 8; ++j)
+                {
+                    cur[j] = (byte)(cur[j] ^ ot[j]);
+                }
+                res.AddRange(cur);
+                temp = cur;
+            }
+            return new Result(res.ToArray(), input.Length);
+        }
+
+        public string CFBDecrypt(Result input, int ivseed)
+        {
+            Random rand = new Random(ivseed);
+            byte[] iv = new byte[8];
+            rand.NextBytes(iv);
+            return CFBDecrypt(input, iv);
+        }
+
+        public string CFBDecrypt(Result input, byte[] iv)
+        {
+            if (iv.Length != 8)
+            {
+                throw new CryptographicException($"Initialization vector length is {iv.Length * 8} bit.");
+            }
+            List<byte> inputBytes = new List<byte>(input.Encrypted);
+            List<byte> res = new List<byte>();
+            byte[] temp = iv;
+            for (var i = 0; i < inputBytes.Count / 8; ++i)
+            {
+                byte[] cur = Encrypt(temp);
+                byte[] ct = inputBytes.Skip(i * 8).Take(8).ToArray();
+                for (var j = 0; j < 8; ++j)
+                {
+                    cur[j] = (byte)(cur[j] ^ ct[j]);
+                }
+                res.AddRange(cur);
+                temp = ct;
             }
             return Encoding.UTF8.GetString(res.ToArray()).Substring(0, input.Length);
         }
