@@ -74,12 +74,12 @@ namespace gost_magma
             byte[] keyr = new byte[key.Length];
             UInt32[] subkeys = new UInt32[8];
             Array.Copy(key, keyr, key.Length);
-            Array.Reverse(keyr);
+//            Array.Reverse(keyr);
             for (int i = 0; i < 8; i++)
             {
                 subkeys[i] = BitConverter.ToUInt32(keyr, i * 4);
             }
-            Array.Reverse(subkeys);
+//            Array.Reverse(subkeys);
             return subkeys;
         }
 
@@ -107,7 +107,7 @@ namespace gost_magma
         {
             byte[] datar = new byte[data.Length];
             Array.Copy(data, datar, data.Length);
-            Array.Reverse(datar);
+//            Array.Reverse(datar);
             UInt32 a0 = BitConverter.ToUInt32(datar, 0);
             UInt32 a1 = BitConverter.ToUInt32(datar, 4);
             byte[] result = new byte[8];
@@ -121,7 +121,7 @@ namespace gost_magma
             a1 = a1 ^ F(a0, _roundkeys[0]);
             Array.Copy(BitConverter.GetBytes(a0), 0, result, 0, 4);
             Array.Copy(BitConverter.GetBytes(a1), 0, result, 4, 4);
-            Array.Reverse(result);
+//            Array.Reverse(result);
             return result;
         }
 
@@ -129,7 +129,7 @@ namespace gost_magma
         {
             byte[] datar = new byte[data.Length];
             Array.Copy(data, datar, data.Length);
-            Array.Reverse(datar);
+//            Array.Reverse(datar);
             UInt32 a0 = BitConverter.ToUInt32(datar, 0);
             UInt32 a1 = BitConverter.ToUInt32(datar, 4);
             byte[] result = new byte[8];
@@ -143,11 +143,11 @@ namespace gost_magma
             a1 = a1 ^ F(a0, _roundkeys[0]);
             Array.Copy(BitConverter.GetBytes(a0), 0, result, 0, 4);
             Array.Copy(BitConverter.GetBytes(a1), 0, result, 4, 4);
-            Array.Reverse(result);
+//            Array.Reverse(result);
             return result;
         }
 
-        public Result CBCEncrypt(string input, int ivseed)
+        public Result CBCEncrypt(byte[] input, int ivseed)
         {
             Random rand = new Random(ivseed);
             byte[] iv = new byte[8];
@@ -155,13 +155,13 @@ namespace gost_magma
             return CBCEncrypt(input, iv);
         }
 
-        public Result CBCEncrypt(string input, byte[] iv)
+        public Result CBCEncrypt(byte[] input, byte[] iv)
         {
             if (iv.Length != 8)
             {
                 throw new CryptographicException($"Initialization vector length is {iv.Length * 8} bit.");
             }
-            List<byte> inputBytes = new List<byte>(Encoding.UTF8.GetBytes(input));
+            List<byte> inputBytes = new List<byte>(input);
             if (inputBytes.Count % 8 != 0)
             {
                 inputBytes.AddRange(new byte[8 - inputBytes.Count % 8]);
@@ -186,7 +186,7 @@ namespace gost_magma
             return new Result(res.ToArray(), input.Length);
         }
 
-        public string CBCDecrypt(Result input, int ivseed)
+        public byte[] CBCDecrypt(Result input, int ivseed)
         {
             Random rand = new Random(ivseed);
             byte[] iv = new byte[8];
@@ -194,7 +194,7 @@ namespace gost_magma
             return CBCDecrypt(input, iv);
         }
 
-        public string CBCDecrypt(Result input, byte[] iv)
+        public byte[] CBCDecrypt(Result input, byte[] iv)
         {
             if (iv.Length != 8)
             {
@@ -219,10 +219,11 @@ namespace gost_magma
                 temp = cur;
                 res.AddRange(decr);
             }
-            return Encoding.UTF8.GetString(res.ToArray()).Substring(0, input.Length);
+            res.RemoveRange(input.Length, res.Count - input.Length);
+            return res.ToArray();
         }
 
-        public Result CFBEncrypt(string input, int ivseed)
+        public Result CFBEncrypt(byte[] input, int ivseed)
         {
             Random rand = new Random(ivseed);
             byte[] iv = new byte[8];
@@ -230,13 +231,13 @@ namespace gost_magma
             return CFBEncrypt(input, iv);
         }
 
-        public Result CFBEncrypt(string input, byte[] iv)
+        public Result CFBEncrypt(byte[] input, byte[] iv)
         {
             if (iv.Length != 8)
             {
                 throw new CryptographicException($"Initialization vector length is {iv.Length * 8} bit.");
             }
-            List<byte> inputBytes = new List<byte>(Encoding.UTF8.GetBytes(input));
+            List<byte> inputBytes = new List<byte>(input);
             if (inputBytes.Count % 8 != 0)
             {
                 inputBytes.AddRange(new byte[8 - inputBytes.Count % 8]);
@@ -257,7 +258,7 @@ namespace gost_magma
             return new Result(res.ToArray(), input.Length);
         }
 
-        public string CFBDecrypt(Result input, int ivseed)
+        public byte[] CFBDecrypt(Result input, int ivseed)
         {
             Random rand = new Random(ivseed);
             byte[] iv = new byte[8];
@@ -265,7 +266,7 @@ namespace gost_magma
             return CFBDecrypt(input, iv);
         }
 
-        public string CFBDecrypt(Result input, byte[] iv)
+        public byte[] CFBDecrypt(Result input, byte[] iv)
         {
             if (iv.Length != 8)
             {
@@ -285,10 +286,11 @@ namespace gost_magma
                 res.AddRange(cur);
                 temp = ct;
             }
-            return Encoding.UTF8.GetString(res.ToArray()).Substring(0, input.Length);
+            res.RemoveRange(input.Length, res.Count - input.Length);
+            return res.ToArray();
         }
 
-        public Result OFBEncrypt(string input, int ivseed)
+        public Result OFBEncrypt(byte[] input, int ivseed)
         {
             Random rand = new Random(ivseed);
             byte[] iv = new byte[8];
@@ -296,13 +298,13 @@ namespace gost_magma
             return OFBEncrypt(input, iv);
         }
 
-        public Result OFBEncrypt(string input, byte[] iv)
+        public Result OFBEncrypt(byte[] input, byte[] iv)
         {
             if (iv.Length != 8)
             {
                 throw new CryptographicException($"Initialization vector length is {iv.Length * 8} bit.");
             }
-            List<byte> inputBytes = new List<byte>(Encoding.UTF8.GetBytes(input));
+            List<byte> inputBytes = new List<byte>(input);
             if (inputBytes.Count % 8 != 0)
             {
                 inputBytes.AddRange(new byte[8 - inputBytes.Count % 8]);
@@ -323,7 +325,7 @@ namespace gost_magma
             return new Result(res.ToArray(), input.Length);
         }
 
-        public string OFBDecrypt(Result input, int ivseed)
+        public byte[] OFBDecrypt(Result input, int ivseed)
         {
             Random rand = new Random(ivseed);
             byte[] iv = new byte[8];
@@ -331,7 +333,7 @@ namespace gost_magma
             return OFBDecrypt(input, iv);
         }
 
-        public string OFBDecrypt(Result input, byte[] iv)
+        public byte[] OFBDecrypt(Result input, byte[] iv)
         {
             if (iv.Length != 8)
             {
@@ -351,7 +353,8 @@ namespace gost_magma
                 }
                 res.AddRange(cur);
             }
-            return Encoding.UTF8.GetString(res.ToArray()).Substring(0, input.Length);
+            res.RemoveRange(input.Length, res.Count - input.Length);
+            return res.ToArray();
         }
     }
 
@@ -364,6 +367,6 @@ namespace gost_magma
         }
 
         public byte[] Encrypted { get; }
-        public int Length { get; }
+        public Int32 Length { get; }
     }
 }
